@@ -64,7 +64,7 @@ Comparative reports against OpenFOAM standard solvers:
 
 ```bash
 # Clone the repository
-git clone git@github.com:your-org/thapar-cfd-pinn-platform.git
+git clone https://github.com/Keshavj-13/thapar-cfd-pinn-platform.git
 cd thapar-cfd-pinn-platform
 
 # Configure and compile with CMake
