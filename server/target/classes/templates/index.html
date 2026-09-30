@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowStudio GPU - Thapar CFD Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script th:src="@{/js/htmx.min.js}"></script>
+    <script th:src="@{/js/three.min.js}"></script>
+    <script th:src="@{/js/OrbitControls.js}"></script>
+</head>
+<body data-level="basic" class="flex flex-col h-screen overflow-hidden select-none">
+
+    <!-- ============================================================
+         TOP BAR: identity, progressive-disclosure level, case status.
+         Flat, no gradients/blur -- a title bar, not a marketing header.
+         ============================================================ -->
+    <header class="h-10 flex items-center justify-between px-3 flex-shrink-0"
+            style="background: var(--bg-panel); border-bottom: 1px solid var(--border);">
+        <div class="flex items-center gap-3">
+            <span class="text-[13px] font-semibold" style="color: var(--text-primary);">Thapar CFD</span>
+            <span class="text-[11px]" style="color: var(--text-muted);">A100-SXM4</span>
+
+            <div class="flex items-center rounded overflow-hidden ml-2" style="border: 1px solid var(--border);">
+                <button data-level="basic" class="level-btn text-[11px] font-medium px-2.5 py-1" onclick="window.setLevel('basic')">Basic</button>
+                <button data-level="advanced" class="level-btn text-[11px] font-medium px-2.5 py-1" onclick="window.setLevel('advanced')">Advanced</button>
+                <button data-level="expert" class="level-btn text-[11px] font-medium px-2.5 py-1" onclick="window.setLevel('expert')">Expert</button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span id="case-validity-chip" class="chip chip-neutral"><span class="dot"></span>Checking case…</span>
+            <span id="compute-state-chip" class="chip chip-neutral"><span class="dot"></span>Idle</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a href="/api/sim/export-vti" class="btn text-[11px] py-1">Export .vti</a>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         APP SHELL: left workflow rail + stage inspector + persistent
+         dual viewport workspace
+         ============================================================ -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <nav class="w-[160px] flex flex-col py-1.5 overflow-y-auto flex-shrink-0"
+             style="background: var(--bg-app); border-right: 1px solid var(--border);">
+            <button class="stage-btn" data-stage="geometry" onclick="window.setStage('geometry')">
+                <span class="stage-status" id="status-geometry">–</span>
+                <span class="stage-num">1</span> Geometry
+            </button>
+            <button class="stage-btn" data-stage="physics" onclick="window.setStage('physics')">
+                <span class="stage-status" id="status-physics">–</span>
+                <span class="stage-num">2</span> Physics
+            </button>
+            <button class="stage-btn" data-stage="materials" onclick="window.setStage('materials')">
+                <span class="stage-status" id="status-materials">–</span>
+                <span class="stage-num">3</span> Materials
+            </button>
+            <button class="stage-btn" data-stage="boundaries" onclick="window.setStage('boundaries')">
+                <span class="stage-status" id="status-boundaries">–</span>
+                <span class="stage-num">4</span> Boundaries
+            </button>
+            <button class="stage-btn" data-stage="mesh" onclick="window.setStage('mesh')">
+                <span class="stage-status" id="status-mesh">–</span>
+                <span class="stage-num">5</span> Mesh
+            </button>
+            <button class="stage-btn" data-stage="validation" onclick="window.setStage('validation')">
+                <span class="stage-status" id="status-validation">–</span>
+                <span class="stage-num">6</span> Validation
+            </button>
+            <button class="stage-btn" data-stage="run" onclick="window.setStage('run')">
+                <span class="stage-status" id="status-run">–</span>
+                <span class="stage-num">7</span> Run
+            </button>
+            <button class="stage-btn" data-stage="results" onclick="window.setStage('results')">
+                <span class="stage-status" id="status-results">–</span>
+                <span class="stage-num">8</span> Results
+            </button>
+
+            <div class="mt-auto px-3 py-2 text-[10px] font-mono" style="color: var(--text-muted); border-top: 1px solid var(--border);">
+                v1.0.0
+            </div>
+        </nav>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <div id="stage-panel" class="overflow-y-auto flex-shrink-0"
+                 style="max-height: 42vh; transition: max-height 0.15s ease; background: var(--bg-panel); border-bottom: 1px solid var(--border);">
+
+                <!-- === STAGE 1: GEOMETRY === -->
+                <section id="panel-geometry" class="stage-content p-3">
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                        <div class="xl:col-span-2">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h3 class="section-label">Bodies in scene</h3>
+                                <div class="flex gap-1.5">
+                                    <label class="btn text-[11px] py-1 cursor-pointer">
+                                        Import STEP / IGES / STL
+                                        <input type="file" id="cad-upload-input" class="hidden" accept=".step,.stp,.iges,.igs,.stl,.obj,.ply" onchange="window.uploadCadFile(this)">
+                                    </label>
+                                    <button onclick="window.exportStl()" class="btn text-[11px] py-1">Export STL</button>
+                                    <button onclick="window.exportStep()" class="btn text-[11px] py-1">Export STEP</button>
+                                </div>
+                            </div>
+                            <div id="body-list" class="flex flex-col gap-0.5 max-h-36 overflow-y-auto rounded p-1"
+                                 style="background: var(--bg-inset); border: 1px solid var(--border);">
+                                <span class="text-[11px] px-2 py-1" style="color: var(--text-muted);">No bodies yet.</span>
+                            </div>
+                            <p class="text-[10px] mt-1.5 leading-relaxed" style="color: var(--text-muted);">
+                                Geometry kernel: real FreeCAD 1.1.3 (headless, via its Part API) — the actual FreeCAD, not a substitute. Real booleans, real fillet/chamfer, real STEP import/export. Imported STL/OBJ files are mesh-only (no B-Rep), so they can't be filleted or booleaned — true of every CAD system, FreeCAD included.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col gap-3" style="border-left: 1px solid var(--border); padding-left: 16px;">
+                            <div>
+                                <h3 class="section-label mb-1.5">Add parametric primitive</h3>
+                                <select id="primitive-type-select" onchange="window.renderPrimitiveForm()" class="select-input w-full text-xs mb-1.5">
+                                    <option value="box">Box</option>
+                                    <option value="cylinder" selected>Cylinder</option>
+                                    <option value="sphere">Sphere</option>
+                                    <option value="cone">Cone</option>
+                                    <option value="torus">Torus</option>
+                                    <option value="airfoil">NACA 0012 Airfoil</option>
+                                </select>
+                                <div id="primitive-form" class="grid grid-cols-3 gap-1"></div>
+                                <div class="flex gap-1.5 mt-1.5">
+                                    <button id="add-body-btn" onclick="window.addPrimitive()" class="btn btn-primary flex-1 text-xs">Add Body</button>
+                                    <button id="cancel-edit-btn" onclick="window.cancelEditBody()" class="btn hidden text-xs">Cancel</button>
+                                </div>
+                            </div>
+                            <div class="advanced-only" style="border-top: 1px solid var(--border); padding-top: 10px;">
+                                <h3 class="section-label mb-1.5">Fillet / Chamfer (real B-Rep)</h3>
+                                <div class="grid grid-cols-2 gap-1 mb-1">
+                                    <select id="fillet-body-select" class="select-input text-xs"></select>
+                                    <select id="fillet-mode-select" class="select-input text-xs">
+                                        <option value="fillet">Fillet</option>
+                                        <option value="chamfer">Chamfer</option>
+                                    </select>
+                                </div>
+                                <div class="flex gap-1">
+                                    <input id="fillet-radius" type="number" step="0.005" value="0.02" class="select-input text-xs flex-1" placeholder="radius (m)">
+                                    <button onclick="window.applyFillet()" class="btn text-xs">Apply</button>
+                                </div>
+                                <p class="text-[10px] mt-1" style="color: var(--text-muted);">Applies to all edges of the selected body (per-edge picking not yet implemented — disclosed).</p>
+                            </div>
+                            <div class="advanced-only" style="border-top: 1px solid var(--border); padding-top: 10px;">
+                                <h3 class="section-label mb-1.5">Boolean combine</h3>
+                                <div class="grid grid-cols-2 gap-1 mb-1">
+                                    <select id="bool-a-select" class="select-input text-xs"></select>
+                                    <select id="bool-b-select" class="select-input text-xs"></select>
+                                </div>
+                                <select id="bool-op-select" class="select-input w-full text-xs mb-1">
+                                    <option value="union">Union (A + B)</option>
+                                    <option value="subtract">Subtract (A − B)</option>
+                                    <option value="intersect">Intersect (A ∩ B)</option>
+                                </select>
+                                <button onclick="window.applyBoolean()" class="btn w-full text-xs">Combine</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="advanced-only mt-3 pt-3" style="border-top: 1px solid var(--border);">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <h3 class="section-label">2D sketch → extrude / revolve</h3>
+                            <span id="sketch-status" class="text-[11px] font-mono" style="color: var(--text-muted);">Not sketching</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <select id="sketch-plane-select" class="select-input text-xs">
+                                <option value="xy">XY Plane</option>
+                                <option value="xz">XZ Plane</option>
+                                <option value="yz">YZ Plane</option>
+                            </select>
+                            <button onclick="window.startSketch()" class="btn text-xs">Start Sketch</button>
+                            <button onclick="window.undoSketchPoint()" class="btn text-xs">Undo Point</button>
+                            <span class="text-[11px] font-mono" style="color: var(--text-secondary);">Depth</span>
+                            <input id="sketch-depth" type="number" step="0.01" value="0.15" class="select-input text-xs w-16">
+                            <button onclick="window.finishSketch('extrude')" class="btn btn-primary text-xs">Extrude</button>
+                            <span style="color: var(--border-strong);">|</span>
+                            <span class="text-[11px] font-mono" style="color: var(--text-secondary);">Revolve angle</span>
+                            <input id="sketch-revolve-angle" type="number" step="1" value="360" class="select-input text-xs w-16">
+                            <button onclick="window.finishSketch('revolve')" class="btn text-xs">Revolve</button>
+                            <button onclick="window.cancelSketch()" class="btn btn-danger text-xs">Cancel</button>
+                        </div>
+                        <p class="text-[10px] mt-1" style="color: var(--text-muted);">Click points on the construction plane in the viewport (min 3 for extrude). Real OCCT surface + extrude/revolve, not a mesh approximation. No dimensional constraint solver yet — points are literal coordinates.</p>
+                    </div>
+                </section>
+
+                <!-- === STAGE 2: PHYSICS === -->
+                <section id="panel-physics" class="stage-content p-3 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="section-label mb-1.5">Flow velocity scale</h3>
+                            <input id="physics-re" type="range" min="10" max="10000" step="10" value="1000" class="w-full" style="accent-color: var(--accent);" oninput="window.onPhysicsChange()">
+                            <div class="flex justify-between text-[11px] font-mono mt-1">
+                                <span>Re = <span id="physics-re-label" class="font-bold" style="color: var(--text-primary);">1000</span></span>
+                                <span id="physics-re-flow-hint" style="color: var(--text-muted);"></span>
+                            </div>
+                            <p class="text-[10px] mt-1" style="color: var(--text-muted);">Re is derived from this velocity scale and the Materials stage's viscosity — set the material first for a meaningful number.</p>
+                        </div>
+                        <div class="advanced-only">
+                            <h3 class="section-label mb-1.5">Multiphysics modules</h3>
+                            <label class="flex items-center gap-2 text-xs font-mono mb-1"><input type="checkbox" id="physics-enable-heat" onchange="window.onPhysicsChange()"> Thermal energy (Boussinesq buoyancy)</label>
+                            <label class="flex items-center gap-2 text-xs font-mono mb-1"><input type="checkbox" id="physics-enable-turb" onchange="window.onPhysicsChange()"> Spalart-Allmaras turbulence</label>
+                            <label class="flex items-center gap-2 text-xs font-mono"><input type="checkbox" id="physics-enable-vof" onchange="window.onPhysicsChange()"> Volume of Fluid (multiphase)</label>
+                        </div>
+                    </div>
+                    <div class="expert-only grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 pt-3" style="border-top: 1px solid var(--border);">
+                        <div>
+                            <h3 class="section-label mb-1.5">Thermal coefficients</h3>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">Thermal diffusivity α</label><input id="expert-thermal-diffusivity" type="number" step="0.0001" class="select-input text-xs w-full"></div>
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">Boussinesq β</label><input id="expert-beta-thermal" type="number" step="0.01" class="select-input text-xs w-full"></div>
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">T_ref</label><input id="expert-t-ref" type="number" step="0.1" class="select-input text-xs w-full"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="section-label mb-1.5">Gravity vector (m/s²)</h3>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">gx</label><input id="expert-gx" type="number" step="0.1" class="select-input text-xs w-full"></div>
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">gy</label><input id="expert-gy" type="number" step="0.1" class="select-input text-xs w-full"></div>
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">gz</label><input id="expert-gz" type="number" step="0.1" class="select-input text-xs w-full"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="section-label mb-1.5">VoF two-phase properties</h3>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">ρ₁ / ρ₂</label><div class="flex gap-1"><input id="expert-rho1" type="number" step="0.1" class="select-input text-xs w-full"><input id="expert-rho2" type="number" step="0.1" class="select-input text-xs w-full"></div></div>
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">ν₁ / ν₂</label><div class="flex gap-1"><input id="expert-nu1" type="number" step="0.000001" class="select-input text-xs w-full"><input id="expert-nu2" type="number" step="0.000001" class="select-input text-xs w-full"></div></div>
+                            </div>
+                        </div>
+                        <div class="md:col-span-3">
+                            <button onclick="window.applyExpertPhysics()" class="btn btn-primary text-xs">Apply Expert Physics Coefficients</button>
+                            <span id="expert-physics-status" class="text-[11px] font-mono ml-2" style="color: var(--text-muted);"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- === STAGE 3: MATERIALS === -->
+                <section id="panel-materials" class="stage-content p-3 hidden">
+                    <h3 class="section-label mb-1.5">Fluid material</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3" id="material-preset-buttons"></div>
+                    <div class="advanced-only grid grid-cols-3 gap-2">
+                        <div><label class="text-[11px] font-mono" style="color: var(--text-secondary);">Density ρ (kg/m³)</label><input id="material-rho" type="number" step="0.01" class="select-input w-full text-xs"></div>
+                        <div><label class="text-[11px] font-mono" style="color: var(--text-secondary);">Kinematic viscosity ν (m²/s)</label><input id="material-nu" type="number" step="0.0000001" class="select-input w-full text-xs"></div>
+                        <div class="flex items-end"><button onclick="window.applyMaterial()" class="btn btn-primary w-full text-xs">Apply Material</button></div>
+                    </div>
+                </section>
+
+                <!-- === STAGE 4: BOUNDARIES === -->
+                <section id="panel-boundaries" class="stage-content p-3 hidden">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <h3 class="section-label">Domain boundary patches (6 required)</h3>
+                        <span class="text-[11px] font-mono" style="color: var(--text-muted);">Or click a face in the Geometry viewport</span>
+                    </div>
+                    <div id="boundary-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2"></div>
+                </section>
+
+                <!-- === STAGE 5: MESH === -->
+                <section id="panel-mesh" class="stage-content p-3 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <h3 class="section-label mb-1.5">Cartesian voxel resolution</h3>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <div><label class="text-[10px] font-mono" style="color: var(--text-muted);">Nx</label><input id="mesh-nx" type="number" min="8" max="256" class="select-input w-full text-xs"></div>
+                                <div><label class="text-[10px] font-mono" style="color: var(--text-muted);">Ny</label><input id="mesh-ny" type="number" min="8" max="256" class="select-input w-full text-xs"></div>
+                                <div><label class="text-[10px] font-mono" style="color: var(--text-muted);">Nz</label><input id="mesh-nz" type="number" min="8" max="256" class="select-input w-full text-xs"></div>
+                            </div>
+                            <div class="advanced-only grid grid-cols-3 gap-1.5 mt-1.5">
+                                <div><label class="text-[10px] font-mono" style="color: var(--text-muted);">Lx (m)</label><input id="mesh-lx" type="number" step="0.01" class="select-input w-full text-xs"></div>
+                                <div><label class="text-[10px] font-mono" style="color: var(--text-muted);">Ly (m)</label><input id="mesh-ly" type="number" step="0.01" class="select-input w-full text-xs"></div>
+                                <div><label class="text-[10px] font-mono" style="color: var(--text-muted);">Lz (m)</label><input id="mesh-lz" type="number" step="0.01" class="select-input w-full text-xs"></div>
+                            </div>
+                            <div class="expert-only grid grid-cols-2 gap-1.5 mt-1.5">
+                                <div><label class="text-[10px] font-mono" style="color: var(--text-muted);">Multigrid levels</label><input id="mesh-nlevel" type="number" min="2" max="6" class="select-input w-full text-xs"></div>
+                                <div><label class="text-[10px] font-mono" style="color: var(--text-muted);">Smoother iterations</label><input id="mesh-mg-iterations" type="number" min="1" max="20" class="select-input w-full text-xs"></div>
+                            </div>
+                            <button class="expert-only btn text-xs w-full mt-1.5" onclick="window.openFloatingPanel('custom-eq-panel')">∑ Custom Equation (porosity/source field)</button>
+                        </div>
+                        <div>
+                            <h3 class="section-label mb-1.5">Mesh statistics</h3>
+                            <div class="text-xs font-mono space-y-1" style="color: var(--text-secondary);">
+                                <div>Total cells: <span id="mesh-stat-cells" class="font-bold" style="color: var(--text-primary);">—</span></div>
+                                <div>Domain extent: <span id="mesh-stat-extent" class="font-bold" style="color: var(--text-primary);">—</span></div>
+                                <div>Cell size (dx,dy,dz): <span id="mesh-stat-cellsize" class="font-bold" style="color: var(--text-primary);">—</span></div>
+                                <div id="mesh-aniso-warning" class="hidden font-bold" style="color: var(--status-warn);">⚠ Anisotropic domain — viewport shows a normalized cube, physical extents differ per axis.</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col justify-end gap-2">
+                            <button onclick="window.generateMesh()" class="btn btn-primary w-full">Generate Mesh</button>
+                            <span id="mesh-generate-status" class="text-[11px] font-mono" style="color: var(--text-muted);"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- === STAGE 6: VALIDATION === -->
+                <section id="panel-validation" class="stage-content p-3 hidden">
+                    <h3 class="section-label mb-1.5">Case validation checklist</h3>
+                    <div id="validation-checklist" class="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs font-mono"></div>
+
+                    <div class="expert-only mt-4 pt-3" style="border-top: 1px solid var(--border);">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <h3 class="section-label">sim_spec.json — direct IR editing</h3>
+                            <div class="flex gap-1.5">
+                                <button onclick="window.loadExpertJson()" class="btn text-[11px] py-1">Reload from Solver</button>
+                                <button onclick="window.applyExpertJson()" class="btn btn-primary text-[11px] py-1">Apply IR</button>
+                            </div>
+                        </div>
+                        <textarea id="expert-json-editor" spellcheck="false"
+                            class="w-full h-48 rounded p-2.5 text-[11px] font-mono outline-none"
+                            style="background: var(--bg-inset); border: 1px solid var(--border-strong); color: #8fd19e;"
+                            placeholder="Loading current sim_spec.json..."></textarea>
+                        <p id="expert-json-status" class="text-[11px] font-mono mt-1" style="color: var(--text-muted);">This is the exact flat IR the native UCOF engine consumes — every stage above is a view onto this same state. Editing and applying here rebuilds the solver directly, bypassing the guided forms.</p>
+                    </div>
+                </section>
+
+                <!-- === STAGE 7: RUN === -->
+                <section id="panel-run" class="stage-content p-3 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pb-3" style="border-bottom: 1px solid var(--border);">
+                        <div>
+                            <h3 class="section-label mb-1.5">Run to completion (bounded, checkpointed)</h3>
+                            <div class="flex items-end gap-1.5">
+                                <div><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">Steps</label><input id="run-target-steps" type="number" value="5000" min="1" class="select-input text-xs w-24"></div>
+                                <div class="advanced-only"><label class="text-[10px] font-mono block mb-0.5" style="color: var(--text-muted);">Checkpoint every</label><input id="run-checkpoint-interval" type="number" value="500" min="0" class="select-input text-xs w-24"></div>
+                                <button onclick="window.startBoundedRun()" class="btn btn-primary text-xs">Run</button>
+                            </div>
+                            <div id="run-progress-row" class="hidden mt-2">
+                                <div class="w-full rounded h-2" style="background: var(--bg-inset); border: 1px solid var(--border);">
+                                    <div id="run-progress-bar" class="h-full rounded" style="width:0%; background: var(--accent); transition: width 0.2s;"></div>
+                                </div>
+                                <div id="run-progress-label" class="text-[11px] font-mono mt-1" style="color: var(--text-muted);"></div>
+                            </div>
+                            <p class="text-[10px] mt-1.5" style="color: var(--text-muted);">Runs exactly N more steps, saves a field snapshot every "checkpoint every" steps (Advanced+; 0 disables), then auto-stops — come back and browse saved snapshots in Results, no need to watch live.</p>
+                        </div>
+                        <div class="text-xs font-mono space-y-1.5" style="color: var(--text-secondary);">
+                            <div>Compute state: <span id="run-stat-state" class="font-bold">IDLE</span></div>
+                            <div>Step: <span id="run-stat-step" class="font-bold" style="color: var(--text-primary);">0</span> <span id="run-stat-target" style="color: var(--text-muted);"></span></div>
+                            <div>Physical time: <span id="run-stat-time" class="font-bold" style="color: var(--text-primary);">0.000 s</span></div>
+                            <div>Throughput: <span id="run-stat-throughput" class="font-bold" style="color: var(--text-primary);">0 steps/s</span></div>
+                            <div>Last GPU step: <span id="run-stat-gpustep" class="font-bold" style="color: var(--text-primary);">0.00 ms</span></div>
+                            <div>Checkpoints saved: <span id="run-stat-checkpoints" class="font-bold" style="color: var(--text-primary);">0</span></div>
+                            <div class="pt-1.5" style="border-top: 1px solid var(--border);">Live CFD is opt-in — nothing computes until you press Run above or Start Live Preview below.</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                        <span class="text-[11px]" style="color: var(--text-muted);">Convergence and probe history now live as floating panels over the Results viewport (draggable, collapsible, always up to date regardless of which stage tab is open):</span>
+                        <button onclick="window.openFloatingPanel('convergence-panel')" class="btn text-xs">Open Convergence Monitor</button>
+                        <button onclick="window.openFloatingPanel('probe-panel')" class="btn text-xs advanced-only">Open Probe History</button>
+                        <span class="text-[10px] block w-full mt-0.5" style="color: var(--text-muted);">Hover the Results viewport and press "P" to pin a point; its field value is tracked over time.</span>
+                    </div>
+                </section>
+
+                <!-- === STAGE 8: RESULTS === -->
+                <section id="panel-results" class="stage-content p-3 hidden">
+                    <div class="flex flex-wrap items-center gap-2 mb-2 pb-2" style="border-bottom: 1px solid var(--border);">
+                        <span class="section-label">Viewing</span>
+                        <span id="results-view-badge" class="chip chip-active"><span class="dot pulse"></span>Live</span>
+                        <select id="checkpoint-select" class="select-input text-xs">
+                            <option value="">No checkpoints yet</option>
+                        </select>
+                        <button onclick="window.viewCheckpoint()" class="btn text-xs">View Checkpoint</button>
+                        <button onclick="window.returnToLive()" class="btn text-xs">Return to Live</button>
+                        <span style="color: var(--border-strong);">|</span>
+                        <span class="text-[11px] font-mono" style="color: var(--text-secondary);">Field stats:</span>
+                        <span id="field-stats-label" class="text-[11px] font-mono" style="color: var(--text-primary);">—</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="section-label">Field</span>
+                        <select id="field-select" hx-post="/api/sim/field" hx-trigger="change" name="field" class="select-input text-xs" onchange="window.onFieldChange()">
+                            <option value="VELOCITY" selected>Velocity Magnitude (|U|)</option>
+                            <option value="PRESSURE">Pressure (p)</option>
+                            <option value="TEMPERATURE">Temperature (T)</option>
+                            <option value="TURBULENCE">Turbulent Eddy Viscosity (nu_t)</option>
+                            <option value="VOF_ALPHA">Multiphase VoF (Alpha)</option>
+                        </select>
+                        <span style="color: var(--border-strong);">|</span>
+                        <span class="section-label">Colormap</span>
+                        <button data-cmap="turbo" class="colormap-btn w-5 h-5 rounded" style="background:linear-gradient(90deg,#30123b,#1bcfd4,#a4fc3b,#f36315); outline:2px solid var(--accent);" onclick="setColormap('turbo')" title="Turbo"></button>
+                        <button data-cmap="viridis" class="colormap-btn w-5 h-5 rounded" style="background:linear-gradient(90deg,#440154,#31688e,#35b779,#fde725)" onclick="setColormap('viridis')" title="Viridis"></button>
+                        <button data-cmap="jet" class="colormap-btn w-5 h-5 rounded" style="background:linear-gradient(90deg,#00008f,#00ffff,#ffff00,#8f0000)" onclick="setColormap('jet')" title="Jet"></button>
+                        <button data-cmap="coolwarm" class="colormap-btn w-5 h-5 rounded" style="background:linear-gradient(90deg,#3b4cc0,#dddddd,#b40426)" onclick="setColormap('coolwarm')" title="Cool-Warm"></button>
+                        <span style="color: var(--border-strong);">|</span>
+                        <button onclick="window.toggleStreamlines()" class="btn text-xs">Streamlines</button>
+                        <button onclick="window.toggleIsosurface()" class="btn text-xs">Isosurface</button>
+                        <button onclick="captureScientificScreenshot()" class="btn text-xs">Save PNG</button>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mt-2 items-center">
+                        <div class="flex items-center gap-1.5 text-xs font-mono"><input type="checkbox" checked onchange="toggleSlicePlane('X', this.checked)"><span>X</span><input type="range" id="slice-slider-X" min="0" max="63" value="31" oninput="onSlicePositionChange('X')" class="w-28" style="accent-color: var(--accent);"><span id="slice-index-label-X">31</span></div>
+                        <div class="flex items-center gap-1.5 text-xs font-mono"><input type="checkbox" checked onchange="toggleSlicePlane('Y', this.checked)"><span>Y</span><input type="range" id="slice-slider-Y" min="0" max="63" value="31" oninput="onSlicePositionChange('Y')" class="w-28" style="accent-color: var(--accent);"><span id="slice-index-label-Y">31</span></div>
+                        <div class="flex items-center gap-1.5 text-xs font-mono"><input type="checkbox" checked onchange="toggleSlicePlane('Z', this.checked)"><span>Z</span><input type="range" id="slice-slider-Z" min="0" max="15" value="8" oninput="onSlicePositionChange('Z')" class="w-28" style="accent-color: var(--accent);"><span id="slice-index-label-Z">8</span></div>
+                    </div>
+                    <div id="results-summary" class="text-[11px] font-mono mt-2" style="color: var(--text-muted);"></div>
+                </section>
+            </div>
+            <button id="stage-panel-collapse-btn" onclick="window.toggleStagePanel()"
+                    class="w-full flex items-center justify-center text-[10px] font-mono flex-shrink-0"
+                    style="height: 12px; background: var(--bg-app); border-bottom: 1px solid var(--border); color: var(--text-muted); cursor: pointer;"
+                    title="Collapse/expand the setup panel for more viewport space">▲</button>
+
+            <!-- Persistent Dual Viewport -->
+            <main class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-px relative overflow-hidden" style="background: var(--border);">
+
+                <section class="relative flex flex-col overflow-hidden" style="background: var(--bg-app);">
+                    <div class="absolute top-2 left-2 z-20 panel-overlay px-2 py-1 text-[11px] font-semibold" style="color: var(--text-secondary);">Geometry</div>
+                    <div class="absolute top-2 right-2 z-20 flex items-center gap-1">
+                        <button data-mode="shaded" class="shading-mode-btn text-[10px] px-1.5 py-1 rounded font-mono" style="background: var(--accent); color: #0b1220;" onclick="setShadingMode('shaded')">Shaded</button>
+                        <button data-mode="shaded-edges" class="shading-mode-btn text-[10px] px-1.5 py-1 rounded font-mono panel-overlay" onclick="setShadingMode('shaded-edges')">+Edges</button>
+                        <button data-mode="wireframe" class="shading-mode-btn text-[10px] px-1.5 py-1 rounded font-mono panel-overlay" onclick="setShadingMode('wireframe')">Wire</button>
+                        <button data-mode="xray" class="shading-mode-btn text-[10px] px-1.5 py-1 rounded font-mono panel-overlay" onclick="setShadingMode('xray')">X-Ray</button>
+                        <label class="flex items-center gap-1 text-[10px] font-mono panel-overlay px-1.5 py-1 rounded"><input type="checkbox" onchange="toggleSectionPlane(this.checked)">Section</label>
+                        <button class="expert-only text-[10px] px-1.5 py-1 rounded font-mono panel-overlay" onclick="window.togglePanelVisibility('custom-eq-panel')" title="Custom spatial source/porosity equation">∑ Eq</button>
+                    </div>
+                    <div id="section-slider-row" class="absolute top-9 right-2 z-20 items-center gap-2 panel-overlay px-2 py-1 text-[11px] font-mono" style="display:none;">
+                        <span style="color: var(--text-muted);">Clip X</span>
+                        <input type="range" min="0" max="1" step="0.01" value="0.5" oninput="updateSectionOffset(this.value)" class="w-24" style="accent-color: var(--accent);">
+                    </div>
+
+                    <div class="absolute bottom-2 left-2 z-20 flex flex-wrap items-center gap-x-2 gap-y-1 panel-overlay px-2 py-1.5 text-[10px] font-mono max-w-[70%]">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:#64748b"></span>No-Slip</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:#a78bfa"></span>Symmetry</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:#22c55e"></span>Inlet</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:#f97316"></span>Outlet</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:#f59e0b"></span>Moving Lid</span>
+                    </div>
+                    <div class="absolute bottom-2 right-2 z-20 flex items-center gap-2 panel-overlay px-2 py-1 text-[11px] font-mono">
+                        <span id="selected-face-badge" class="px-2 py-0.5 rounded text-xs font-medium" style="background: var(--bg-inset); color: var(--text-secondary);">Click a face</span>
+                        <span style="color: var(--text-muted);">Tris</span><span id="cad-triangle-count" class="font-bold" style="color: var(--text-primary);">0</span>
+                    </div>
+
+                    <div id="bc-panel" class="floating-panel hidden absolute top-9 right-2 z-30 w-64 panel-overlay p-3 flex flex-col gap-2" style="border-color: var(--accent-dim);" data-collapsed="false">
+                        <div class="floating-panel-header" onmousedown="window.startDragFloatingPanel(event, 'bc-panel')">
+                            <span class="fp-title">⠿ Boundary: <span id="bc-panel-face-label">-</span></span>
+                            <span class="fp-controls">
+                                <button class="fp-collapse-btn" onclick="window.toggleFloatingPanelCollapse('bc-panel')" title="Collapse (keeps your selection)">−</button>
+                                <button onclick="closeBcPanel()" title="Close (deselects the face)">&times;</button>
+                            </span>
+                        </div>
+                        <div class="floating-panel-body flex flex-col gap-2">
+                            <select id="bc-type-select" onchange="updateBcInputVisibility(this.value)" class="select-input text-xs">
+                                <option value="no_slip_wall">No-Slip Wall</option>
+                                <option value="free_slip_symmetry">Free-Slip Symmetry</option>
+                                <option value="dirichlet_inflow">Inlet (Dirichlet Velocity)</option>
+                                <option value="neumann_outflow">Outlet (Neumann Pressure)</option>
+                                <option value="moving_lid">Moving Lid</option>
+                                <option value="periodic">Periodic</option>
+                                <option value="isothermal_wall">Isothermal Wall</option>
+                            </select>
+                            <div id="bc-velocity-row" class="flex gap-1.5">
+                                <div class="flex-1"><label class="text-[10px] font-mono" style="color: var(--text-muted);">u</label><input id="bc-u-input" type="number" step="0.1" value="0" class="select-input text-xs w-full"></div>
+                                <div class="flex-1"><label class="text-[10px] font-mono" style="color: var(--text-muted);">v</label><input id="bc-v-input" type="number" step="0.1" value="0" class="select-input text-xs w-full"></div>
+                                <div class="flex-1"><label class="text-[10px] font-mono" style="color: var(--text-muted);">w</label><input id="bc-w-input" type="number" step="0.1" value="0" class="select-input text-xs w-full"></div>
+                            </div>
+                            <button id="bc-apply-btn" onclick="applyBoundaryCondition()" class="btn btn-primary w-full mt-1 text-xs">Apply Boundary Condition</button>
+                        </div>
+                    </div>
+
+                    <div id="custom-eq-panel" class="expert-only floating-panel hidden absolute top-9 left-2 z-30 w-72 panel-overlay p-3 flex flex-col gap-2" style="border-color: var(--accent-dim);" data-collapsed="false">
+                        <div class="floating-panel-header" onmousedown="window.startDragFloatingPanel(event, 'custom-eq-panel')">
+                            <span class="fp-title">∑ Custom Equation</span>
+                            <span class="fp-controls">
+                                <button class="fp-collapse-btn" onclick="window.toggleFloatingPanelCollapse('custom-eq-panel')" title="Collapse">−</button>
+                                <button onclick="window.closeFloatingPanel('custom-eq-panel')" title="Close">&times;</button>
+                            </span>
+                        </div>
+                        <div class="floating-panel-body flex flex-col gap-2">
+                            <p class="text-[10px]" style="color: var(--text-muted);">Defines a spatial field σ(x,y,z) evaluated over the mesh and merged into the same porosity/forcing channel real CAD geometry uses — a genuine custom porous region or patterned obstruction, reaching the live GPU solver on Apply. (Not a route to an arbitrary new PDE term — that needs native CUDA kernel changes.)</p>
+                            <textarea id="custom-eq-input" rows="2" class="select-input text-xs w-full font-mono" placeholder="e.g. 40*step(sin(6*x)-0.5)">0</textarea>
+                            <div class="flex items-center gap-1.5 text-[10px] font-mono" style="color: var(--text-muted);">
+                                <span>Vars: x,y,z,xn,yn,zn,lx,ly,lz,pi,e</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <select id="custom-eq-mode" class="select-input text-xs flex-1">
+                                    <option value="add">Add to geometry mask</option>
+                                    <option value="max">Max with geometry mask</option>
+                                    <option value="replace">Replace geometry mask</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <button onclick="window.previewCustomEquation()" class="btn text-xs flex-1">Preview</button>
+                                <button onclick="window.applyCustomEquation()" class="btn btn-primary text-xs flex-1">Apply to Solver</button>
+                            </div>
+                            <div id="custom-eq-status" class="text-[10px] font-mono" style="color: var(--text-muted);">—</div>
+                        </div>
+                    </div>
+
+                    <div id="cad-container" class="flex-1 w-full h-full cursor-crosshair"></div>
+                </section>
+
+                <section class="relative flex flex-col overflow-hidden" style="background: var(--bg-app);">
+                    <div class="absolute top-2 left-2 z-20 panel-overlay px-2 py-1 text-[11px] font-semibold" style="color: var(--text-secondary);">Results</div>
+                    <div class="absolute top-2 right-2 z-20 flex items-center gap-1">
+                        <button class="text-[10px] px-1.5 py-1 rounded font-mono panel-overlay" onclick="window.togglePanelVisibility('stats-panel')" title="Field statistics panel">Stats</button>
+                        <button class="text-[10px] px-1.5 py-1 rounded font-mono panel-overlay" onclick="window.togglePanelVisibility('convergence-panel')" title="Convergence monitor panel">Conv</button>
+                        <button class="text-[10px] px-1.5 py-1 rounded font-mono panel-overlay advanced-only" onclick="window.togglePanelVisibility('probe-panel')" title="Point-probe history panel">Probe</button>
+                    </div>
+                    <div id="probe-tooltip" class="hidden absolute z-30 pointer-events-none panel-overlay px-2.5 py-1.5 text-[11px] font-mono"></div>
+                    <div class="legend-bar">
+                        <div class="text-[10px] font-mono flex justify-between" style="color: var(--text-secondary);"><span id="legend-field-label">FIELD</span></div>
+                        <div id="legend-gradient" class="legend-gradient cmap-turbo"></div>
+                        <div class="legend-labels" id="legend-ticks"><span>0.000</span><span>0.250</span><span>0.500</span><span>0.750</span><span>1.000</span></div>
+                    </div>
+                    <div id="scientific-container" class="flex-1 w-full h-full"></div>
+
+                    <div id="stats-panel" class="floating-panel absolute top-9 right-2 z-30 w-48 panel-overlay p-2.5" data-collapsed="false">
+                        <div class="floating-panel-header" onmousedown="window.startDragFloatingPanel(event, 'stats-panel')">
+                            <span class="fp-title">Field Statistics</span>
+                            <span class="fp-controls">
+                                <button class="fp-collapse-btn" onclick="window.toggleFloatingPanelCollapse('stats-panel')" title="Collapse">−</button>
+                                <button onclick="window.closeFloatingPanel('stats-panel')" title="Close">&times;</button>
+                            </span>
+                        </div>
+                        <div class="floating-panel-body pt-1.5" id="stats-panel-content">
+                            <span class="text-[10px]" style="color: var(--text-muted);">No field sampled yet.</span>
+                        </div>
+                    </div>
+
+                    <div id="convergence-panel" class="floating-panel absolute top-9 right-52 z-30 w-64 panel-overlay p-2.5" data-collapsed="false">
+                        <div class="floating-panel-header" onmousedown="window.startDragFloatingPanel(event, 'convergence-panel')">
+                            <span class="fp-title">Convergence Monitor</span>
+                            <span class="fp-controls">
+                                <span id="convergence-verdict" class="text-[10px] font-mono mr-1" style="color: var(--text-muted);">—</span>
+                                <button class="fp-collapse-btn" onclick="window.toggleFloatingPanelCollapse('convergence-panel')" title="Collapse">−</button>
+                                <button onclick="window.closeFloatingPanel('convergence-panel')" title="Close">&times;</button>
+                            </span>
+                        </div>
+                        <div class="floating-panel-body pt-1.5">
+                            <canvas id="convergence-canvas" width="480" height="110" class="w-full rounded" style="background: var(--bg-inset); border: 1px solid var(--border);"></canvas>
+                            <div class="flex gap-3 text-[9px] font-mono mt-1">
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#4d8dff"></span>Max Divergence</span>
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#c99a3c"></span>Pressure Residual</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="probe-panel" class="hidden floating-panel absolute top-32 right-52 z-30 w-64 panel-overlay p-2.5" data-collapsed="false">
+                        <div class="floating-panel-header" onmousedown="window.startDragFloatingPanel(event, 'probe-panel')">
+                            <span class="fp-title">Probe History</span>
+                            <span class="fp-controls">
+                                <button class="fp-collapse-btn" onclick="window.toggleFloatingPanelCollapse('probe-panel')" title="Collapse">−</button>
+                                <button onclick="window.closeFloatingPanel('probe-panel')" title="Close">&times;</button>
+                            </span>
+                        </div>
+                        <div class="floating-panel-body pt-1.5">
+                            <div class="text-[10px] font-mono mb-1" style="color: var(--text-muted);" id="probe-pin-status">No point pinned</div>
+                            <canvas id="probe-history-canvas" width="480" height="110" class="w-full rounded" style="background: var(--bg-inset); border: 1px solid var(--border);"></canvas>
+                            <p class="text-[9px] mt-1" style="color: var(--text-muted);">Hover the viewport and press "P" to pin a point.</p>
+                        </div>
+                    </div>
+                </section>
+                <div id="panel-dock-tray" class="panel-dock-tray absolute bottom-2 right-2 z-40"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         FOOTER: always-reachable run controls. Live CFD is opt-in --
+         nothing here runs until Start Live Preview is clicked.
+         ============================================================ -->
+    <footer class="h-12 flex items-center justify-between px-3 flex-shrink-0"
+            style="background: var(--bg-panel); border-top: 1px solid var(--border);">
+        <div class="flex items-center gap-1.5">
+            <button id="run-btn" hx-post="/api/sim/start" hx-swap="none" onclick="window.onRunClicked()" class="btn btn-success">Start Live Preview</button>
+            <button hx-post="/api/sim/pause" hx-swap="none" class="btn">Stop</button>
+            <button hx-post="/api/sim/step?steps=10" hx-swap="none" class="btn">Step (10)</button>
+            <button hx-post="/api/sim/reset" hx-swap="none" class="btn btn-danger">Reset</button>
+        </div>
+
+        <div id="diagnostics-panel" hx-get="/api/sim/diagnostics" hx-trigger="load, every 250ms" hx-swap="innerHTML" class="flex items-center gap-5 text-xs font-mono">
+            <span style="color: var(--text-muted);">Loading…</span>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/cad-viewport.js}"></script>
+    <script th:src="@{/js/scientific-viewport.js}"></script>
+    <script th:src="@{/js/workflow.js}"></script>
+</body>
+</html>

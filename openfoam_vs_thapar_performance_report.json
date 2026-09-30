@@ -1,0 +1,171 @@
+{
+  "config": {
+    "Re": 1000.0,
+    "Ub": 1.0,
+    "L": 1.0,
+    "CFL": 0.3,
+    "nsteps": 50,
+    "cpu": "AMD EPYC 7742 (single core, single icoFoam process)",
+    "gpu": "NVIDIA A100-SXM4-80GB (single device)",
+    "openfoam_version": "v1912 (OpenFOAM Foundation)",
+    "case": "3D lid-driven cavity, unit cube, 5x no-slip wall + 1x moving lid"
+  },
+  "runs": [
+    {
+      "N": 16,
+      "cells": 4096,
+      "openfoam": {
+        "N": 16,
+        "cells": 4096,
+        "dt": 0.01875,
+        "nsteps": 50,
+        "wall_time_s": 0.2991018629982136,
+        "ms_per_step": 5.982037259964272,
+        "foam_reported_execution_time_s": 0.27,
+        "foam_reported_clock_time_s": 0.0
+      },
+      "thapar_gpu": {
+        "N": 16,
+        "cells": 4096,
+        "dt": 0.01875,
+        "nsteps": 50,
+        "total_ms": 82.3081,
+        "ms_per_step": 1.646162,
+        "steps_per_sec": 607.474,
+        "vram_mb": 0.5,
+        "max_div": 15.517
+      },
+      "speedup_x": 3.6339298683630608
+    },
+    {
+      "N": 24,
+      "cells": 13824,
+      "openfoam": {
+        "N": 24,
+        "cells": 13824,
+        "dt": 0.012499999999999999,
+        "nsteps": 50,
+        "wall_time_s": 1.2216609149982105,
+        "ms_per_step": 24.43321829996421,
+        "foam_reported_execution_time_s": 1.2,
+        "foam_reported_clock_time_s": 1.0
+      },
+      "thapar_gpu": {
+        "N": 24,
+        "cells": 13824,
+        "dt": 0.012499999999999999,
+        "nsteps": 50,
+        "total_ms": 104.4989,
+        "ms_per_step": 2.089977,
+        "steps_per_sec": 478.474,
+        "vram_mb": 1.66,
+        "max_div": 285.24
+      },
+      "speedup_x": 11.690663724990374
+    },
+    {
+      "N": 32,
+      "cells": 32768,
+      "openfoam": {
+        "N": 32,
+        "cells": 32768,
+        "dt": 0.009375,
+        "nsteps": 50,
+        "wall_time_s": 4.1964136280003,
+        "ms_per_step": 83.92827256000601,
+        "foam_reported_execution_time_s": 4.15,
+        "foam_reported_clock_time_s": 4.0
+      },
+      "thapar_gpu": {
+        "N": 32,
+        "cells": 32768,
+        "dt": 0.009375,
+        "nsteps": 50,
+        "total_ms": 117.8471,
+        "ms_per_step": 2.356942,
+        "steps_per_sec": 424.279,
+        "vram_mb": 3.91,
+        "max_div": 10965.0
+      },
+      "speedup_x": 35.60896812904433
+    },
+    {
+      "N": 48,
+      "cells": 110592,
+      "openfoam": {
+        "N": 48,
+        "cells": 110592,
+        "dt": 0.0062499999999999995,
+        "nsteps": 50,
+        "wall_time_s": 17.924308913999994,
+        "ms_per_step": 358.4861782799999,
+        "foam_reported_execution_time_s": 17.89,
+        "foam_reported_clock_time_s": 18.0
+      },
+      "thapar_gpu": {
+        "N": 48,
+        "cells": 110592,
+        "dt": 0.0062499999999999995,
+        "nsteps": 50,
+        "total_ms": 138.6169,
+        "ms_per_step": 2.772338,
+        "steps_per_sec": 360.706,
+        "vram_mb": 13.07,
+        "max_div": 31983.0
+      },
+      "speedup_x": 129.30825111512374
+    },
+    {
+      "N": 64,
+      "cells": 262144,
+      "openfoam": {
+        "N": 64,
+        "cells": 262144,
+        "dt": 0.0046875,
+        "nsteps": 50,
+        "wall_time_s": 65.1843399490026,
+        "ms_per_step": 1303.6867989800521,
+        "foam_reported_execution_time_s": 65.08,
+        "foam_reported_clock_time_s": 65.0
+      },
+      "thapar_gpu": {
+        "N": 64,
+        "cells": 262144,
+        "dt": 0.0046875,
+        "nsteps": 50,
+        "total_ms": 198.6285,
+        "ms_per_step": 3.97257,
+        "steps_per_sec": 251.726,
+        "vram_mb": 30.83,
+        "max_div": 576.06
+      },
+      "speedup_x": 328.1721401964099
+    },
+    {
+      "N": 96,
+      "cells": 884736,
+      "openfoam": {
+        "N": 96,
+        "cells": 884736,
+        "dt": 0.0031249999999999997,
+        "nsteps": 50,
+        "wall_time_s": 337.2697148829975,
+        "ms_per_step": 6745.39429765995,
+        "foam_reported_execution_time_s": 336.99,
+        "foam_reported_clock_time_s": 337.0
+      },
+      "thapar_gpu": {
+        "N": 96,
+        "cells": 884736,
+        "dt": 0.0031249999999999997,
+        "nsteps": 50,
+        "total_ms": 481.3948,
+        "ms_per_step": 9.627896,
+        "steps_per_sec": 103.865,
+        "vram_mb": 103.59,
+        "max_div": 26.071
+      },
+      "speedup_x": 700.6093852343181
+    }
+  ]
+}

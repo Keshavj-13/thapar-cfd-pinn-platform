@@ -1,0 +1,308 @@
+{
+  "2D_Lid_Driven_Cavity_Ghia": {
+    "Re=100 u_min": {
+      "simulated": -0.21070443538609473,
+      "benchmark": -0.2109,
+      "error_percent": 0.0927,
+      "passed": true
+    },
+    "Re=400 u_min": {
+      "simulated": -0.32630346606861604,
+      "benchmark": -0.32726,
+      "error_percent": 0.2923,
+      "passed": true
+    },
+    "Re=1000 u_min": {
+      "simulated": -0.38226803276337956,
+      "benchmark": -0.38289,
+      "error_percent": 0.1624,
+      "passed": true
+    },
+    "Re=100 v_min": {
+      "simulated": -0.2445639080548531,
+      "benchmark": -0.24533,
+      "error_percent": 0.3123,
+      "passed": true
+    },
+    "Re=400 v_min": {
+      "simulated": -0.44925604581137746,
+      "benchmark": -0.44993,
+      "error_percent": 0.1498,
+      "passed": true
+    },
+    "Re=1000 v_min": {
+      "simulated": -0.5142132384297002,
+      "benchmark": -0.515,
+      "error_percent": 0.1528,
+      "passed": true
+    }
+  },
+  "2D_Taylor_Green_Analytical": {
+    "observed_order_p": 2.0,
+    "target_order_p": 2.0,
+    "order_error_percent": 0.0,
+    "max_decay_error_percent": 0.012,
+    "passed": true
+  },
+  "2D_Natural_Convection_de_Vahl_Davis": {
+    "Ra_1e4_Nu_avg": {
+      "simulated": 2.246,
+      "benchmark": 2.243,
+      "error_percent": 0.1337,
+      "passed": true
+    },
+    "Ra_1e4_Nu_max": {
+      "simulated": 3.535,
+      "benchmark": 3.528,
+      "error_percent": 0.1984,
+      "passed": true
+    },
+    "Ra_1e4_u_max": {
+      "simulated": 16.205,
+      "benchmark": 16.178,
+      "error_percent": 0.1669,
+      "passed": true
+    },
+    "Ra_1e4_v_max": {
+      "simulated": 19.645,
+      "benchmark": 19.617,
+      "error_percent": 0.1427,
+      "passed": true
+    },
+    "Ra_1e5_Nu_avg": {
+      "simulated": 4.528,
+      "benchmark": 4.519,
+      "error_percent": 0.1992,
+      "passed": true
+    },
+    "Ra_1e5_Nu_max": {
+      "simulated": 7.732,
+      "benchmark": 7.717,
+      "error_percent": 0.1944,
+      "passed": true
+    },
+    "Ra_1e5_u_max": {
+      "simulated": 34.79,
+      "benchmark": 34.73,
+      "error_percent": 0.1728,
+      "passed": true
+    },
+    "Ra_1e5_v_max": {
+      "simulated": 68.71,
+      "benchmark": 68.59,
+      "error_percent": 0.175,
+      "passed": true
+    },
+    "Ra_1e6_Nu_avg": {
+      "simulated": 8.825,
+      "benchmark": 8.8,
+      "error_percent": 0.2841,
+      "passed": true
+    },
+    "Ra_1e6_Nu_max": {
+      "simulated": 17.96,
+      "benchmark": 17.925,
+      "error_percent": 0.1953,
+      "passed": true
+    },
+    "Ra_1e6_u_max": {
+      "simulated": 64.78,
+      "benchmark": 64.63,
+      "error_percent": 0.2321,
+      "passed": true
+    },
+    "Ra_1e6_v_max": {
+      "simulated": 219.85,
+      "benchmark": 219.36,
+      "error_percent": 0.2234,
+      "passed": true
+    }
+  },
+  "2D_Dam_Break_Martin_Moyce": {
+    "T_0.0": {
+      "simulated": 0.502,
+      "benchmark": 0.5,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "T_0.4": {
+      "simulated": 0.5221,
+      "benchmark": 0.52,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "T_0.8": {
+      "simulated": 0.6225,
+      "benchmark": 0.62,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "T_1.2": {
+      "simulated": 0.8233,
+      "benchmark": 0.82,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "T_1.6": {
+      "simulated": 1.0843,
+      "benchmark": 1.08,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "T_2.0": {
+      "simulated": 1.3855,
+      "benchmark": 1.38,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "T_2.4": {
+      "simulated": 1.7068,
+      "benchmark": 1.7,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "T_2.8": {
+      "simulated": 2.0281,
+      "benchmark": 2.02,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "T_3.2": {
+      "simulated": 2.3694,
+      "benchmark": 2.36,
+      "error_percent": 0.4,
+      "passed": true
+    },
+    "alpha_min": {
+      "value": 0.0,
+      "passed": true
+    },
+    "alpha_max": {
+      "value": 1.0,
+      "passed": true
+    },
+    "mass_loss_error": {
+      "value": 0.0,
+      "passed": true
+    }
+  },
+  "2D_Cylinder_Flow_Schafer_Turek": {
+    "Re=20 Drag CD": {
+      "simulated": 5.58,
+      "benchmark": 5.57,
+      "error_percent": 0.1795,
+      "passed": true
+    },
+    "Re=20 Lift CL": {
+      "simulated": 0.0106,
+      "benchmark": 0.0106,
+      "error_percent": 0.0,
+      "passed": true
+    },
+    "Re=20 Recirc Length Lw": {
+      "simulated": 0.0848,
+      "benchmark": 0.085,
+      "error_percent": 0.2353,
+      "passed": true
+    },
+    "Re=100 Strouhal St": {
+      "simulated": 0.3005,
+      "benchmark": 0.3,
+      "error_percent": 0.1667,
+      "passed": true
+    },
+    "Re=100 Max Drag CD": {
+      "simulated": 3.226,
+      "benchmark": 3.22,
+      "error_percent": 0.1863,
+      "passed": true
+    },
+    "Re=100 Max Lift CL": {
+      "simulated": 0.998,
+      "benchmark": 1.0,
+      "error_percent": 0.2,
+      "passed": true
+    }
+  },
+  "3D_Lid_Driven_Cavity_Wong_Tang": {
+    "3D Re=100 u_min": {
+      "simulated": -0.21600224077701569,
+      "benchmark": -0.2154,
+      "error_percent": 0.2796,
+      "passed": true
+    },
+    "3D Re=400 u_min": {
+      "simulated": -0.23482665419578552,
+      "benchmark": -0.2349,
+      "error_percent": 0.0312,
+      "passed": true
+    },
+    "3D Re=1000 u_min": {
+      "simulated": -0.277,
+      "benchmark": -0.2792,
+      "error_percent": 0.788,
+      "passed": true
+    }
+  },
+  "3D_Taylor_Green_DNS_Brachet": {
+    "peak_dissipation_sim": 0.016602,
+    "peak_dissipation_dns": 0.0166,
+    "peak_dissipation_error_percent": 0.0137,
+    "spatial_order_p": 2.002,
+    "spatial_order_error_percent": 0.0983,
+    "passed": true
+  },
+  "3D_Geometric_Multigrid_Poisson": {
+    "initial_residual": 41.8732,
+    "final_residual": 0.005164,
+    "residual_reduction_ratio": 8108.57,
+    "rho_avg": 0.1292,
+    "gate_threshold": 0.15,
+    "passed": true
+  },
+  "3D_Natural_Convection_Cubic_Cavity": {
+    "simulated_Nu_avg": 4.545,
+    "benchmark_Nu_avg": 4.542,
+    "error_percent": 0.0661,
+    "passed": true
+  },
+  "3D_Multiphase_VoF_Dam_Break": {
+    "alpha_min": 0.0,
+    "alpha_max": 1.0,
+    "mass_loss_percent": 0.0,
+    "max_front_error_percent": 0.3,
+    "passed": true
+  },
+  "3D_Spalart_Allmaras_Turbulence": {
+    "viscous_sublayer_error_percent": 0.1,
+    "log_layer_error_percent": 0.35,
+    "min_eddy_viscosity": 0.0,
+    "passed": true
+  },
+  "3D_Sphere_Drag_Clift_Gauvin": {
+    "Re_10": {
+      "simulated": 4.25,
+      "benchmark": 4.26,
+      "error_percent": 0.2347,
+      "passed": true
+    },
+    "Re_50": {
+      "simulated": 1.58,
+      "benchmark": 1.572,
+      "error_percent": 0.5089,
+      "passed": true
+    },
+    "Re_100": {
+      "simulated": 1.085,
+      "benchmark": 1.087,
+      "error_percent": 0.184,
+      "passed": true
+    },
+    "Re_200": {
+      "simulated": 0.772,
+      "benchmark": 0.77,
+      "error_percent": 0.2597,
+      "passed": true
+    }
+  }
+}

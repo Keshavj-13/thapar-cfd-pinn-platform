@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="diagFragment" id="diagnostics-panel" class="flex items-center gap-5 text-xs font-mono">
+    <div class="flex items-center gap-1.5">
+        <span th:if="${diag.running}" class="chip chip-active"><span class="dot pulse"></span>Running</span>
+        <span th:unless="${diag.running}" class="chip chip-neutral"><span class="dot"></span>Idle</span>
+    </div>
+    <div class="flex items-center gap-1.5" style="color: var(--text-muted);">Step
+        <span class="font-semibold" style="color: var(--text-primary);" th:text="${diag.currentStep}">0</span>
+    </div>
+    <div class="flex items-center gap-1.5" style="color: var(--text-muted);">Time
+        <span class="font-semibold" style="color: var(--text-primary);" th:text="${#numbers.formatDecimal(diag.physicalTime, 1, 4)} + ' s'">0.0000 s</span>
+    </div>
+    <div class="flex items-center gap-1.5" style="color: var(--text-muted);">Div
+        <span class="font-semibold" style="color: var(--text-primary);" th:text="${#numbers.formatDecimal(diag.maxDivergence, 1, 4)}">0.0000</span>
+    </div>
+    <div class="flex items-center gap-1.5" style="color: var(--text-muted);">P-Res
+        <span class="font-semibold" style="color: var(--text-primary);" th:text="${#numbers.formatDecimal(diag.pressureResidual, 1, 5)}">0.00000</span>
+    </div>
+    <div class="flex items-center gap-1.5" style="color: var(--text-muted);">GPU step
+        <span class="font-semibold" style="color: var(--text-primary);" th:text="${#numbers.formatDecimal(diag.lastStepMs, 1, 2)} + ' ms'">0.00 ms</span>
+    </div>
+    <div class="flex items-center gap-1.5" style="color: var(--text-muted);">Throughput
+        <span class="font-semibold" style="color: var(--text-primary);" th:text="${#numbers.formatDecimal(diag.framesPerSecond, 1, 0)} + ' steps/s'">0 steps/s</span>
+    </div>
+    <div class="flex items-center gap-1.5" style="color: var(--text-muted);">VRAM
+        <span class="font-semibold" style="color: var(--text-primary);" th:text="${#numbers.formatDecimal(diag.vramMb, 1, 1)} + ' MB'">0.0 MB</span>
+    </div>
+</div>
+</body>
+</html>

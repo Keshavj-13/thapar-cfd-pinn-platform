@@ -1,0 +1,84 @@
+{
+  "Wall Normal Flux & Lateral Boundary Conservation": {
+    "passed": true,
+    "metrics": {
+      "Y-Min Normal Flux": {
+        "value": 0.0,
+        "passed": true
+      },
+      "Y-Max Normal Flux": {
+        "value": 0.0,
+        "passed": true
+      },
+      "Relative Mass Flux Error": {
+        "value": 0.016603,
+        "passed": true
+      }
+    }
+  },
+  "3D Taylor-Green Vortex (2nd-Order Spatial Convergence)": {
+    "passed": true,
+    "metrics": {
+      "Error Reduction Ratio": {
+        "value": 4.005,
+        "passed": true
+      },
+      "Observed Order p": {
+        "value": 2.0,
+        "passed": true
+      }
+    }
+  },
+  "3D Geometric Multigrid Poisson (128^3, 2.1M cells)": {
+    "passed": true,
+    "metrics": {
+      "Average Factor rho_avg": {
+        "value": 0.1292,
+        "passed": true
+      }
+    }
+  },
+  "Rayleigh-B\u00e9nard Natural Convection (Ra = 10^5 vs de Vahl Davis)": {
+    "passed": true,
+    "metrics": {
+      "Average Nusselt Number": {
+        "value": 4.5643,
+        "passed": true
+      },
+      "Relative Discrepancy %": {
+        "value": 1.0,
+        "passed": true
+      }
+    }
+  },
+  "Multiphase VoF Dam Break (Martin & Moyce vs interFoam)": {
+    "passed": true,
+    "metrics": {
+      "Global Min Alpha": {
+        "value": 0.0,
+        "passed": true
+      },
+      "Global Max Alpha": {
+        "value": 1.0,
+        "passed": true
+      },
+      "Net Mass Loss Error %": {
+        "value": 0.0,
+        "passed": true
+      }
+    }
+  },
+  "Spalart-Allmaras High-Re Turbulence (vs simpleFoam)": {
+    "passed": true,
+    "metrics": {
+      "Min Eddy Viscosity": {
+        "value": 0.0,
+        "passed": true
+      },
+      "Peak Eddy Viscosity": {
+        "value": 0.0914522,
+        "passed": true
+      }
+    }
+  }
+}

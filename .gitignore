@@ -1,0 +1,12 @@
+build/
+bin/
+*.o
+*.so
+*.a
+*.bin
+obstacle_mask.bin
+cad_geometry.json
+*.log
+hs_err_pid*
+__pycache__/
+.ipynb_checkpoints/

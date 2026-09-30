@@ -1,0 +1,1 @@
+{"bodies":[{"id":"body1","type":"cylinder","label":"Cylinder","role":"obstacle","params":{"radius":0.1,"height":0.8,"axis":"z"},"transform":{"tx":0.3,"ty":0.5,"tz":0.4}}]}

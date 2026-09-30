@@ -1,0 +1,223 @@
+/* FlowStudio CFD — restrained engineering-tool theme.
+   One accent color for interaction/selection, desaturated status colors used
+   only to mean status (never decoration), flat panels, no gradients or blur. */
+:root {
+    --bg-app: #17191d;
+    --bg-panel: #1d2025;
+    --bg-inset: #121316;
+    --bg-hover: #262a30;
+    --border: #2c3036;
+    --border-strong: #3a3f47;
+    --text-primary: #e6e8eb;
+    --text-secondary: #9198a3;
+    --text-muted: #5c6470;
+    --accent: #4d8dff;
+    --accent-dim: #2c4a80;
+    --status-ok: #4f9d6e;
+    --status-ok-bg: rgba(79, 157, 110, 0.14);
+    --status-warn: #c99a3c;
+    --status-warn-bg: rgba(201, 154, 60, 0.14);
+    --status-error: #c85c52;
+    --status-error-bg: rgba(200, 92, 82, 0.14);
+    --status-active: #4d8dff;
+    --status-active-bg: rgba(77, 141, 255, 0.14);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+}
+
+/* ---- Buttons ---- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
+}
+.btn:hover { background: var(--bg-hover); border-color: var(--accent-dim); }
+.btn:active { background: var(--bg-inset); }
+
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #0b1220; font-weight: 600; }
+.btn-primary:hover { background: #6d9fff; }
+
+.btn-success { background: var(--status-ok); border-color: var(--status-ok); color: #0b1220; font-weight: 600; }
+.btn-success:hover { filter: brightness(1.1); }
+
+.btn-danger { background: transparent; border-color: var(--status-error); color: var(--status-error); }
+.btn-danger:hover { background: var(--status-error-bg); }
+
+.select-input, .range-input {
+    background: var(--bg-inset);
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    padding: 5px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    outline: none;
+}
+.select-input:focus { border-color: var(--accent); }
+
+/* ---- Colormap legend ---- */
+.legend-bar {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 20;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 240px;
+}
+.legend-gradient { height: 8px; border-radius: 2px; }
+.legend-gradient.cmap-turbo { background: linear-gradient(to right, #30123b, #4145ab, #4675ed, #39a2fc, #1bcfd4, #24eca6, #61fc4c, #a4fc3b, #d1e834, #f3c63a, #fe9b2d, #f36315, #d93806, #a11a01, #7a0403); }
+.legend-gradient.cmap-viridis { background: linear-gradient(to right, #440154, #472d7b, #3b528b, #2c728e, #21918c, #28ae80, #5ec962, #addc30, #fde725); }
+.legend-gradient.cmap-jet { background: linear-gradient(to right, #00008f, #0000ff, #00ffff, #7fff7f, #ffff00, #ff7f00, #ff0000, #8f0000); }
+.legend-gradient.cmap-coolwarm { background: linear-gradient(to right, #3b4cc0, #6e90f2, #b6cefa, #dddddd, #f6b69c, #d95847, #b40426); }
+.legend-labels { display: flex; justify-content: space-between; gap: 6px; font-size: 9px; font-family: ui-monospace, monospace; color: var(--text-secondary); white-space: nowrap; }
+
+/* ---- Progressive disclosure level toggle (header) ---- */
+.level-btn { color: var(--text-muted); background: transparent; border: none; cursor: pointer; }
+.level-btn.active { background: var(--bg-hover); color: var(--text-primary); }
+
+/* ---- Workflow rail ---- */
+.stage-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+}
+.stage-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.stage-btn.active { background: var(--bg-panel); border-left-color: var(--accent); color: var(--text-primary); }
+.stage-num { font-family: ui-monospace, monospace; font-size: 10px; color: var(--text-muted); width: 12px; }
+.stage-btn.active .stage-num { color: var(--accent); }
+.stage-status {
+    width: 15px; height: 15px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; flex-shrink: 0;
+    background: var(--bg-inset); color: var(--text-muted);
+}
+.stage-status.status-ok { background: var(--status-ok-bg); color: var(--status-ok); }
+.stage-status.status-warn { background: var(--status-warn-bg); color: var(--status-warn); }
+.stage-status.status-error { background: var(--status-error-bg); color: var(--status-error); }
+.stage-status.status-active { background: var(--status-active-bg); color: var(--status-active); }
+
+/* ---- Header status chips ---- */
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 3px; font-size: 11px; font-weight: 600; border: 1px solid; }
+.chip-ok { background: var(--status-ok-bg); color: var(--status-ok); border-color: rgba(79,157,110,0.35); }
+.chip-warn { background: var(--status-warn-bg); color: var(--status-warn); border-color: rgba(201,154,60,0.35); }
+.chip-error { background: var(--status-error-bg); color: var(--status-error); border-color: rgba(200,92,82,0.35); }
+.chip-neutral { background: var(--bg-hover); color: var(--text-secondary); border-color: var(--border); }
+.chip-active { background: var(--status-active-bg); color: var(--status-active); border-color: rgba(77,141,255,0.35); }
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.chip .dot.pulse { animation: pulse-dot 1.4s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* Progressive disclosure visibility */
+body[data-level="basic"] .advanced-only,
+body[data-level="basic"] .expert-only,
+body[data-level="advanced"] .expert-only {
+    display: none !important;
+}
+
+/* ---- Body list (Geometry stage) ---- */
+.body-list-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: ui-monospace, monospace;
+    border: 1px solid transparent;
+}
+.body-list-row:hover { background: var(--bg-hover); }
+.body-list-row.selected { background: var(--status-active-bg); border-color: rgba(77,141,255,0.3); }
+
+/* ---- Section labels ---- */
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+}
+
+/* ---- Panels / surfaces (flat, no blur, no glow) ---- */
+.panel-overlay {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+}
+
+/* ---- Floating/dockable panels: draggable, collapsible-to-header (never fully
+   vanish on collapse), closable to a reopenable dock chip. Same header pattern
+   is reused across BC / Field Stats / Probe History / Convergence / Custom
+   Equations so the app's features compose like a real CAD/CFD panel dock. ---- */
+.floating-panel { min-width: 168px; }
+.floating-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 6px; cursor: move; user-select: none;
+}
+.floating-panel-header .fp-title {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.floating-panel-header .fp-controls { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.floating-panel-header button {
+    line-height: 1; color: var(--text-muted); background: transparent; border: none;
+    cursor: pointer; font-size: 12px; padding: 2px 5px; border-radius: 2px;
+}
+.floating-panel-header button:hover { background: var(--bg-hover); color: var(--text-primary); }
+.floating-panel[data-collapsed="true"] .floating-panel-body { display: none; }
+
+.panel-dock-tray { display: flex; flex-wrap: wrap; gap: 4px; max-width: 60%; justify-content: flex-end; }
+.panel-dock-chip {
+    font-size: 10px; font-family: ui-monospace, monospace; padding: 3px 8px; border-radius: 3px;
+    cursor: pointer; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-secondary);
+}
+.panel-dock-chip:hover { color: var(--text-primary); border-color: var(--accent-dim); }
+
+/* ---- Validation checklist ---- */
+.validation-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+}
+.validation-row .mark { width: 14px; text-align: center; font-weight: 700; flex-shrink: 0; }
+.validation-row.ok .mark { color: var(--status-ok); }
+.validation-row.warn .mark { color: var(--status-warn); }
+.validation-row.error .mark { color: var(--status-error); }

@@ -1,0 +1,127 @@
+{
+  "config": {
+    "case": "Differentially heated square cavity, Ra=10^5, Pr=0.71 (de Vahl Davis 1983)",
+    "nu": 0.01,
+    "alpha_thermal": 0.014084507042253521,
+    "beta_thermal": 1.4084507042253522,
+    "T_hot": 1.0,
+    "T_cold": 0.0,
+    "gy": -10.0,
+    "nsteps": 50,
+    "cpu": "AMD EPYC 7742 (single core, single buoyantBoussinesqPimpleFoam process)",
+    "gpu": "NVIDIA A100-SXM4-80GB (single device, enable_heat=1 Boussinesq UCOF path)",
+    "openfoam_version": "v1912 (OpenFOAM Foundation)"
+  },
+  "runs": [
+    {
+      "N": 16,
+      "cells": 1024,
+      "openfoam": {
+        "N": 16,
+        "cells": 1024,
+        "dt": 0.01875,
+        "nsteps": 50,
+        "wall_time_s": 0.15248314399650553,
+        "ms_per_step": 3.0496628799301106
+      },
+      "thapar_gpu": {
+        "N": 16,
+        "cells": 1024,
+        "dt": 0.01875,
+        "nsteps": 50,
+        "total_ms": 32.0254,
+        "ms_per_step": 0.640508,
+        "steps_per_sec": 1561.26
+      },
+      "speedup_x": 4.761318952971877
+    },
+    {
+      "N": 24,
+      "cells": 2304,
+      "openfoam": {
+        "N": 24,
+        "cells": 2304,
+        "dt": 0.012499999999999999,
+        "nsteps": 50,
+        "wall_time_s": 0.2579168860029313,
+        "ms_per_step": 5.158337720058626
+      },
+      "thapar_gpu": {
+        "N": 24,
+        "cells": 2304,
+        "dt": 0.012499999999999999,
+        "nsteps": 50,
+        "total_ms": 35.2641,
+        "ms_per_step": 0.705282,
+        "steps_per_sec": 1417.872
+      },
+      "speedup_x": 7.3138655460633135
+    },
+    {
+      "N": 32,
+      "cells": 4096,
+      "openfoam": {
+        "N": 32,
+        "cells": 4096,
+        "dt": 0.009375,
+        "nsteps": 50,
+        "wall_time_s": 0.42711970799427945,
+        "ms_per_step": 8.542394159885589
+      },
+      "thapar_gpu": {
+        "N": 32,
+        "cells": 4096,
+        "dt": 0.009375,
+        "nsteps": 50,
+        "total_ms": 90.7532,
+        "ms_per_step": 1.815064,
+        "steps_per_sec": 550.945
+      },
+      "speedup_x": 4.706387300880624
+    },
+    {
+      "N": 48,
+      "cells": 9216,
+      "openfoam": {
+        "N": 48,
+        "cells": 9216,
+        "dt": 0.0062499999999999995,
+        "nsteps": 50,
+        "wall_time_s": 0.8633488810010022,
+        "ms_per_step": 17.266977620020043
+      },
+      "thapar_gpu": {
+        "N": 48,
+        "cells": 9216,
+        "dt": 0.0062499999999999995,
+        "nsteps": 50,
+        "total_ms": 105.4551,
+        "ms_per_step": 2.109101,
+        "steps_per_sec": 474.136
+      },
+      "speedup_x": 8.186889873941572
+    },
+    {
+      "N": 64,
+      "cells": 16384,
+      "openfoam": {
+        "N": 64,
+        "cells": 16384,
+        "dt": 0.0046875,
+        "nsteps": 50,
+        "wall_time_s": 1.7757904829995823,
+        "ms_per_step": 35.515809659991646
+      },
+      "thapar_gpu": {
+        "N": 64,
+        "cells": 16384,
+        "dt": 0.0046875,
+        "nsteps": 50,
+        "total_ms": 113.6633,
+        "ms_per_step": 2.273266,
+        "steps_per_sec": 439.896
+      },
+      "speedup_x": 15.623252914525466
+    }
+  ]
+}

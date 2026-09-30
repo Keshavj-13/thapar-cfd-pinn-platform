@@ -1,0 +1,12 @@
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/ThaparCfdApplication.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/config/WebSocketConfig.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/controller/CfdDashboardController.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/controller/CfdWebSocketHandler.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/model/SimulationConfig.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/model/SolverDiagnostics.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/service/CadPreprocessService.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/service/CfdEngineService.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/service/CheckpointService.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/service/CustomEquationService.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/service/ExpressionEvaluator.java
+/workspace/thapar CFD platform/server/src/main/java/com/thapar/cfd/service/ParaViewExportService.java
